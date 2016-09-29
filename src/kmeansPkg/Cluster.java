@@ -1,4 +1,6 @@
-package personPkg;
+package kmeansPkg;
+
+import java.util.ArrayList;
 
 public class Cluster {
 	/* 
@@ -6,30 +8,37 @@ public class Cluster {
 	 * points: points belonging to this cluster
 	 */
 	protected Centroid _centroid;
-	protected Point[] _points;
+	protected ArrayList<Point> _points;
 	protected int _id = 0;
 	
-	public Point[] getPoints()				{ return _points; }
-	public Centroid getCentroid()			{ return _centroid; }
-	public int getId()						{ return _id; }
+	public ArrayList<Point> getPoints()				{ return _points; }
+	public Centroid getCentroid()					{ return _centroid; }
+	public int getId()								{ return _id; }
 	
-	public void setPoints(Point[] points)	{ _points = points; }
-	public void setId(int id)				{ _id = id; }
+	public void setPoints(ArrayList<Point> points)	{ _points = points; }
+	public void setId(int id)						{ _id = id; }
 	
 	/**
 	 * Instantiates a cluster with a random centroid with the given dimension
-	 * 
+	 * Within the given range min and max
+	 * @param id
 	 * @param dim
+	 * @param min
+	 * @param max
 	 */
-	public Cluster(int id, int dim) {
-		double[] coord = new double[dim];
-		for (int i = 0; i < dim; i++) {
-			coord[i] = (double)(Math.random()*100);
-		}
-		Centroid c = new Centroid(coord);
+	public Cluster(int id, int dim, int min, int max) {
+		
+		Centroid c = new Centroid(min, max, dim);
 		_centroid = c;
 		_id = id;
+		_points = new ArrayList<Point>();
 	}
+	
+	public Cluster(int id, int dim) {
+		_id = id;
+		_points = new ArrayList<Point>();
+	}
+	
 	/** 
 	 * Instantiates a cluster with the given centroid instance
 	 * 
@@ -39,6 +48,7 @@ public class Cluster {
 	public Cluster(int id, Centroid centroid) {
 		_centroid = centroid;
 		_id = id;
+		_points = new ArrayList<Point>();
 		//collectPoints();
 	}
 	
@@ -54,38 +64,31 @@ public class Cluster {
 	}
 	
 	/**
-	 * Instantiates a cluster problem given the number of clusters desired and the dimension.
-	 * Will randomly initialize the centroids.
-	 * 
-	 * @param k number of clusters desired
-	 * @param n dimension of points
+	 * adds point to cluster
 	 */
-	
-	/*
-	public Cluster(int k, int n) {
-		initializeCentroids(n);
-		initializePoints(n);
+	public void addToCluster(Point p) {
+		_points.add(p);
 	}
-	*/
 	
 	/**
-	 * Method used to randomly initialize centroids given the number of clusters and dimension
-	 * 
-	 * @param n dimension of points
+	 * clear cluster of points
 	 */
+	public void clearCluster() {
+		_points = new ArrayList<Point>();
+	}
 	
 	
 	/**
 	 * Method to obtain the centroid of the cluster
 	 */
 	public void computeCentroid() {
-		int n = _points.length;
+		int n = _points.size();
 		if (n > 0) {
-			int dim = _points[0].getCoordinate().length;
+			int dim = _points.get(0).getCoordinate().length;
 			double[] new_coords = new double[dim];
 			//sum of all points
 			for (int i = 0; i < n; i++) {
-				int[] curr_coords = _points[i].getCoordinate();
+				double[] curr_coords = _points.get(i).getCoordinate();
 				for (int j = 0; j < dim; j++) {
 					new_coords[j] += curr_coords[j];
 				}
@@ -99,6 +102,19 @@ public class Cluster {
 		}
 	}
 	
+	public double computeMeanDistance() {
+		double distance = 0.0;
+		
+		for (Point p : _points) {
+			distance += getDistance(p, _centroid);
+			//System.out.println(getDistance(p, _centroid));
+		}
+		//System.out.println("end"+_points.size());
+		if (_points.size() == 0)
+			return distance;
+		return distance/_points.size();
+	}
+	
 	/**
 	 * Computes the distance between two given points
 	 * @param p1 
@@ -107,12 +123,13 @@ public class Cluster {
 	 */
 	public static double getDistance(Point p1, Point p2) {
 		double distance = 0;
-		int [] coord1 = p1.getCoordinate();
-		int [] coord2 = p2.getCoordinate();
+		double [] coord1 = p1.getCoordinate();
+		double [] coord2 = p2.getCoordinate();
 		for (int i = 0; i < coord1.length; i++) {
 			distance += Math.pow(coord2[i]-coord1[i], 2);
 		}
 		return Math.sqrt(distance);
 	}
+	
 	
 }
